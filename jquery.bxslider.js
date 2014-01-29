@@ -77,7 +77,7 @@
 
 		// CALLBACKS
 		onSliderLoad: function() {},
-		onSlideBefore: function() {},
+		onSlideBefore: function() { return true },
 		onSlideAfter: function() {},
 		onSlideNext: function() {},
 		onSlidePrev: function() {}
@@ -1098,6 +1098,8 @@
 			// declare that plugin is in motion
 			slider.working = true;
 			// store the old index
+            var prevOldIndex = slider.oldIndex,
+                prevIndex = slider.active.index;
 			slider.oldIndex = slider.active.index;
 			// if slideIndex is less than zero, set active index to last child (this happens during infinite loop)
 			if(slideIndex < 0){
@@ -1109,8 +1111,14 @@
 			}else{
 				slider.active.index = slideIndex;
 			}
-			// onSlideBefore, onSlideNext, onSlidePrev callbacks
-			slider.settings.onSlideBefore(slider.children.eq(slider.active.index), slider.oldIndex, slider.active.index);
+			// check, if external onSlideBefore callback enables sliding
+			if (!slider.settings.onSlideBefore(slider.children.eq(slider.active.index), slider.oldIndex, slider.active.index, direction)) {
+                slider.active.index = prevIndex;
+                slider.oldIndex = prevOldIndex;
+                slider.working = false;
+                return
+            }
+            // onSlideNext, onSlidePrev callbacks
 			if(direction == 'next'){
 				slider.settings.onSlideNext(slider.children.eq(slider.active.index), slider.oldIndex, slider.active.index);
 			}else if(direction == 'prev'){
